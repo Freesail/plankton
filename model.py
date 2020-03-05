@@ -14,10 +14,11 @@ def get_mlp(in_dim, hiddent_dim, out_dim):
     return nn.Sequential(*tuple(layers))
 
 
-def get_model(backbone, fc_hidden_dim, num_classes):
+def get_model(backbone, fc_hidden_dim, num_classes, device):
     model_conv = eval('%s(pretrained=True)' % backbone)
     for param in model_conv.parameters():
         param.requires_grad = False
     num_ftrs = model_conv.fc.in_features
     model_conv.fc = get_mlp(num_ftrs, fc_hidden_dim, num_classes)
+    model_conv = model_conv.to(device)
     return model_conv
