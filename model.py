@@ -86,7 +86,7 @@ def train_model(dataset_sizes,
                             print('batch %d: loss %.3f | acc %.3f' % (batch, batch_loss, batch_acc))
 
                 epoch_loss += loss.item() * inputs.size(0)
-                epoch_acc += torch.sum(preds == labels.data)
+                epoch_acc += torch.sum(preds == labels.data).item()
 
             if phase == 'train':
                 scheduler.step()
@@ -111,7 +111,7 @@ def train_model_val(data_transforms, data_dir, train_cfg,
                       for x in ['train', 'val']}
     dataloaders, dataset_sizes = helper_dataloaders(image_datasets, train_cfg['batch_size'])
     model, optimizer, scheduler = \
-        helper_model(model_cfg, optimizer_cfg, scheduler_cfg)
+        helper_train(model_cfg, optimizer_cfg, scheduler_cfg)
 
     print('Training starts ...')
     best_val_loss, best_val_acc, best_val_model = \
@@ -141,10 +141,10 @@ def train_model_crossval(data_transforms, kfold_dir, train_cfg,
     kfold_val_loss = []
     kfold_val_acc = []
     kfold_val_model = []
-    
+
     K = len(kfold_datasets)
     for i in range(K):
-        print('K_Fold CV {}/{}'.format(i+1, K))
+        print('K_Fold CV {}/{}'.format(i + 1, K))
         print('=' * 10)
         train_sets = kfold_datasets[:i] + kfold_datasets[i + 1:]
         for s in train_sets:
@@ -157,7 +157,7 @@ def train_model_crossval(data_transforms, kfold_dir, train_cfg,
         }
         dataloaders, dataset_sizes = helper_dataloaders(image_datasets, train_cfg['batch_size'])
         model, optimizer, scheduler = \
-            helper_model(model_cfg, optimizer_cfg, scheduler_cfg)
+            helper_train(model_cfg, optimizer_cfg, scheduler_cfg)
 
         best_val_loss, best_val_acc, best_val_model = \
             train_model(dataset_sizes, dataloaders,
