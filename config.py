@@ -1,5 +1,6 @@
 from torchvision import transforms
 import preprocess
+import torch
 
 data_transforms = dict()
 data_transforms['train'] = transforms.Compose([
@@ -24,7 +25,7 @@ model_cfg = {
     'backbone': 'resnet18',
     'fc_hidden_dim': [256, 256],
     'num_classes': 121,
-    'device': None
+    'device': torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 }
 
 optimizer_cfg = {
