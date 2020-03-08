@@ -51,7 +51,7 @@ def train_model(dataset_sizes,
                 dataloaders,
                 model, loss_fn, optimizer, scheduler, device,
                 num_epochs=50, batch_per_disp=128):
-    best_val_model = copy.deepcopy(model.state_dict())
+    best_val_model = copy.deepcopy(model.fc.state_dict())
     best_val_loss = 100
     best_val_acc = 0
     for epoch in range(1, num_epochs + 1):
@@ -99,7 +99,7 @@ def train_model(dataset_sizes,
             if phase == 'val' and epoch_loss < best_val_loss:
                 best_val_loss = epoch_loss
                 best_val_acc = epoch_acc
-                best_val_model = copy.deepcopy(model.state_dict())
+                best_val_model = copy.deepcopy(model.fc.state_dict())
 
     return best_val_loss, best_val_acc, best_val_model
 

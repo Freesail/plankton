@@ -6,9 +6,6 @@ data_transforms = dict()
 data_transforms['train'] = transforms.Compose([
     preprocess.PadToSquare(),
     transforms.Resize((224, 224)),
-    transforms.RandomAffine(180, translate=(0.1, 0.1), scale=(1/1.3, 1.3), shear=20),
-    transforms.RandomHorizontalFlip(),
-    transforms.RandomVerticalFlip(),
     transforms.ToTensor()
 ])
 data_transforms['val'] = transforms.Compose([
