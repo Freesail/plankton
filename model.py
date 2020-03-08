@@ -40,7 +40,7 @@ def helper_train(model_cfg, optimizer_cfg, scheduler_cfg):
 
 
 def helper_dataloaders(image_datasets, batch_size):
-    class_names = image_datasets['train'].classes
+    class_names = image_datasets['val'].classes
     dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x],
                                                   batch_size=batch_size,
                                                   shuffle=True, num_workers=4)
@@ -50,9 +50,9 @@ def helper_dataloaders(image_datasets, batch_size):
 
 
 def helper_class_loss_acc(class_loss, class_acc, class_cnt, losses, preds, labels):
-    labels = labels.numpy().astype(np.int)
-    preds = preds.numpy().astype(np.int)
-    losses = losses.numpy().astype(np.float)
+    labels = labels.cpu().numpy().astype(np.int)
+    preds = preds.cpu().numpy().astype(np.int)
+    losses = losses.cpu().numpy().astype(np.float)
 
     for i in range(labels.shape[0]):
         class_cnt[labels[i]] = class_cnt[labels[i]] + 1
@@ -128,37 +128,37 @@ def train_model(class_names, dataset_sizes,
     return best_val_loss, best_val_acc, best_val_class_loss, best_val_class_acc, best_val_model
 
 
-def train_model_val(data_transforms, data_dir, train_cfg,
-                    model_cfg, optimizer_cfg, scheduler_cfg,
-                    loss_fn=nn.CrossEntropyLoss(reduction='none')):
-    image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x])
-                      for x in ['train', 'val']}
-    class_names, dataloaders, dataset_sizes = helper_dataloaders(image_datasets, train_cfg['batch_size'])
-    model, optimizer, scheduler = \
-        helper_train(model_cfg, optimizer_cfg, scheduler_cfg)
-
-    print('Training starts ...')
-    best_val_loss, best_val_acc, best_val_class_loss, best_val_class_acc, best_val_model = \
-        train_model(class_names, dataset_sizes, dataloaders,
-                    model, loss_fn, optimizer, scheduler,
-                    model_cfg['device'],
-                    train_cfg['num_epochs'],
-                    train_cfg['batch_per_disp'])
-    print('Training ends')
-    print('Best val loss %.3f | acc: %.3f' % (best_val_loss, best_val_acc))
-    ckpoint = {
-        'best_val_loss': best_val_loss,
-        'best_val_acc': best_val_acc,
-        'best_val_model': best_val_model,
-        'config': (data_transforms, train_cfg, model_cfg, optimizer_cfg, scheduler_cfg)
-    }
-    torch.save(ckpoint, 'ckpoint.pt')
-    return best_val_loss, best_val_acc
+# def train_model_val(data_transforms, data_dir, train_cfg,
+#                     model_cfg, optimizer_cfg, scheduler_cfg,
+#                     loss_fn=nn.CrossEntropyLoss(reduction='none')):
+#     image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x])
+#                       for x in ['train', 'val']}
+#     class_names, dataloaders, dataset_sizes = helper_dataloaders(image_datasets, train_cfg['batch_size'])
+#     model, optimizer, scheduler = \
+#         helper_train(model_cfg, optimizer_cfg, scheduler_cfg)
+#
+#     print('Training starts ...')
+#     best_val_loss, best_val_acc, best_val_class_loss, best_val_class_acc, best_val_model = \
+#         train_model(class_names, dataset_sizes, dataloaders,
+#                     model, loss_fn, optimizer, scheduler,
+#                     model_cfg['device'],
+#                     train_cfg['num_epochs'],
+#                     train_cfg['batch_per_disp'])
+#     print('Training ends')
+#     print('Best val loss %.3f | acc: %.3f' % (best_val_loss, best_val_acc))
+#     ckpoint = {
+#         'best_val_loss': best_val_loss,
+#         'best_val_acc': best_val_acc,
+#         'best_val_model': best_val_model,
+#         'config': (data_transforms, train_cfg, model_cfg, optimizer_cfg, scheduler_cfg)
+#     }
+#     torch.save(ckpoint, 'ckpoint.pt')
+#     return best_val_loss, best_val_acc
 
 
 def train_model_crossval(data_transforms, kfold_dir, train_cfg,
                          model_cfg, optimizer_cfg, scheduler_cfg,
-                         loss_fn=nn.CrossEntropyLoss(reduction='none')):
+                         loss_fn=nn.CrossEntropyLoss(reduction='none'), cv=True):
     kfold_datasets = []
     for k in safe_listdir(kfold_dir):
         kfold_datasets.append(datasets.ImageFolder(os.path.join(kfold_dir, k)))
@@ -208,22 +208,12 @@ def train_model_crossval(data_transforms, kfold_dir, train_cfg,
             'config': (data_transforms, train_cfg, model_cfg, optimizer_cfg, scheduler_cfg)
         }
         torch.save(ckpoint, 'ckpoint.pt')
+
+        if not cv:
+            break
+
     return kfold_val_loss, kfold_val_acc, kfold_val_class_loss, kfold_val_class_acc
 
 
 if __name__ == '__main__':
-    # data_transforms = dict()
-    #
-    # data_transforms['train'] = transforms.Compose([
-    #     transforms.Resize((100, 100)),
-    #     transforms.ToTensor()
-    # ])
-    # data_transforms['val'] = transforms.Compose([
-    #     transforms.Resize((50, 50)),
-    #     transforms.ToTensor()
-    # ])
-    # device = torch.device('cpu')
-    # train_model_cv(data_transforms, kfold_dir='./data/raw_data/kfold', batch_size=2, device=device)
-    from config import data_transforms, train_cfg
-
-    print(data_transforms)
+    pass
