@@ -22,10 +22,11 @@ def helper_mlp(in_dim, hiddent_dim, out_dim):
     return nn.Sequential(*tuple(layers))
 
 
-def helper_model(backbone, fc_hidden_dim, num_classes, device):
+def helper_model(backbone, fc_hidden_dim, num_classes, tune_conv, device):
     model_conv = eval('%s(pretrained=True)' % backbone)
-    for param in model_conv.parameters():
-        param.requires_grad = False
+    if not tune_conv:
+        for param in model_conv.parameters():
+            param.requires_grad = False
     num_ftrs = model_conv.fc.in_features
     model_conv.fc = helper_mlp(num_ftrs, fc_hidden_dim, num_classes)
     model_conv = model_conv.to(device)
@@ -34,7 +35,10 @@ def helper_model(backbone, fc_hidden_dim, num_classes, device):
 
 def helper_train(model_cfg, optimizer_cfg, scheduler_cfg):
     model = helper_model(**model_cfg)
-    optimizer = torch.optim.Adam(model.fc.parameters(), **optimizer_cfg)
+    if model_cfg['tune_conv']:
+        optimizer = torch.optim.Adam(model.parameters(), **optimizer_cfg)
+    else:
+        optimizer = torch.optim.Adam(model.fc.parameters(), **optimizer_cfg)
     scheduler = StepLR(optimizer, **scheduler_cfg)
     return model, optimizer, scheduler
 
@@ -43,7 +47,7 @@ def helper_dataloaders(image_datasets, batch_size):
     class_names = image_datasets['val'].classes
     dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x],
                                                   batch_size=batch_size,
-                                                  shuffle=True, num_workers=4)
+                                                  shuffle=True, num_workers=16)
                    for x in ['train', 'val']}
     dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
     return class_names, dataloaders, dataset_sizes
@@ -130,7 +134,7 @@ def train_model(class_names, dataset_sizes,
                 result['val_class_cnt'] = class_cnt
                 result['best_class_loss'] = np.array(class_loss, dtype=np.float) / class_cnt
                 result['best_class_acc'] = np.array(class_acc, dtype=np.float) / class_cnt
-                result['best_model'] = copy.deepcopy(model.fc.state_dict())
+                result['best_model'] = copy.deepcopy(model.state_dict())
     return result
 
 
