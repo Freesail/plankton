@@ -53,21 +53,19 @@ class PlanktonData:
         k_fold_n = np.zeros(k_fold, dtype=np.int32)
         samples_with_label = self.get_train_samples_with_label()
         print('splitting k_fold ...')
-        for c in self.labels:
+        for c in tqdm.tqdm(self.labels):
             samples = samples_with_label[c]
             nc = len(samples)
-            if nc % k_fold != 0:
-                n_per_fold = int(nc / k_fold)
-            else:
-                n_per_fold = nc / k_fold
+            nf = int(nc / k_fold)
+            n_per_fold = np.ones(k_fold, np.int) * nf
+            n_per_fold[:int(nc - nf * k_fold)] = n_per_fold[:int(nc - nf * k_fold)] + 1
+            n_per_fold = np.cumsum(n_per_fold)
+            n_per_fold = np.insert(n_per_fold, 0, 0)
             shuffle(samples)
             folds = list(range(k_fold))
             shuffle(folds)
             for i, k in enumerate(folds):
-                if i == k_fold - 1:
-                    samples_this_fold = samples[int(i * n_per_fold):]
-                else:
-                    samples_this_fold = samples[int(i * n_per_fold):int((i + 1) * n_per_fold)]
+                samples_this_fold = samples[n_per_fold[i]:n_per_fold[i + 1]]
                 for s in samples_this_fold:
                     src = os.path.join(self.raw_train_dir, c, s)
                     dst = os.path.join(dst_dir, 'fold_%d' % k, c)
@@ -75,11 +73,8 @@ class PlanktonData:
                 k_fold_n[k] = k_fold_n[k] + len(samples_this_fold)
 
         print('samples in k_fold: ', k_fold_n)
-        print('total samples in kfold: ', k_fold_n.sum())
-        print('total samples in raw train set: ', self.n_train_samples)
 
 
 if __name__ == '__main__':
     plankton = PlanktonData(raw_data_dir='./data/raw_data')
     plankton.split_kfold(k_fold=5, dst_dir='./data/raw_data/kfold')
-

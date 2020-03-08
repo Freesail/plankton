@@ -55,7 +55,7 @@ def train_model(dataset_sizes,
     best_val_loss = 100
     best_val_acc = 0
     for epoch in range(1, num_epochs + 1):
-        print('Epoch {}/{}'.format(epoch, num_epochs - 1))
+        print('Epoch {}/{}'.format(epoch, num_epochs))
         print('-' * 10)
 
         for phase in ['train', 'val']:
@@ -128,7 +128,7 @@ def train_model_val(data_transforms, data_dir, train_cfg,
         'best_val_model': best_val_model
     }
     torch.save(ckpoint, 'ckpoint.pt')
-    return best_val_loss, best_val_acc, best_val_model
+    return best_val_loss, best_val_acc
 
 
 def train_model_crossval(data_transforms, kfold_dir, train_cfg,
@@ -176,7 +176,7 @@ def train_model_crossval(data_transforms, kfold_dir, train_cfg,
             'kfold_val_model': kfold_val_model
         }
         torch.save(ckpoint, 'ckpoint.pt')
-    return kfold_val_loss, kfold_val_acc, kfold_val_model
+    return kfold_val_loss, kfold_val_acc
 
 
 if __name__ == '__main__':
