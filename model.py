@@ -64,11 +64,16 @@ def train_model(class_names, dataset_sizes,
                 dataloaders,
                 model, loss_fn, optimizer, scheduler, device,
                 num_epochs=50, batch_per_disp=128):
-    best_val_model = copy.deepcopy(model.fc.state_dict())
-    best_val_loss = 100
-    best_val_acc = 0
-    best_val_class_loss = 100
-    best_val_class_acc = 0
+    result = \
+        {
+            'best_model': None,
+            'best_loss': 100,
+            'best_acc': 0,
+            'val_class_cnt': None,
+            'best_class_loss': None,
+            'best_class_acc': None
+        }
+
     for epoch in range(1, num_epochs + 1):
         print('Epoch {}/{}'.format(epoch, num_epochs))
         print('-' * 10)
@@ -118,14 +123,15 @@ def train_model(class_names, dataset_sizes,
             print('Epoch %d: %s loss %.3f | %s acc %.3f'
                   % (epoch, phase, epoch_loss, phase, epoch_acc))
 
-            if phase == 'val' and epoch_loss < best_val_loss:
-                best_val_loss = epoch_loss
-                best_val_acc = epoch_acc
-                best_val_class_loss = np.array(class_loss, dtype=np.float) / np.array(class_cnt)
-                best_val_class_acc = np.array(class_acc, dtype=np.float) / np.array(class_cnt)
-                best_val_model = copy.deepcopy(model.fc.state_dict())
-
-    return best_val_loss, best_val_acc, best_val_class_loss, best_val_class_acc, best_val_model
+            if phase == 'val' and epoch_loss < result['best_loss']:
+                result['best_loss'] = epoch_loss
+                result['best_acc'] = epoch_acc
+                class_cnt = np.array(class_cnt)
+                result['val_class_cnt'] = class_cnt
+                result['best_class_loss'] = np.array(class_loss, dtype=np.float) / class_cnt
+                result['best_class_acc'] = np.array(class_acc, dtype=np.float) / class_cnt
+                result['best_model'] = copy.deepcopy(model.fc.state_dict())
+    return result
 
 
 # def train_model_val(data_transforms, data_dir, train_cfg,
@@ -163,11 +169,7 @@ def train_model_crossval(data_transforms, kfold_dir, train_cfg,
     for k in safe_listdir(kfold_dir):
         kfold_datasets.append(datasets.ImageFolder(os.path.join(kfold_dir, k)))
 
-    kfold_val_loss = []
-    kfold_val_class_loss = []
-    kfold_val_acc = []
-    kfold_val_class_acc = []
-    kfold_val_model = []
+    kfold_result = []
 
     K = len(kfold_datasets)
     for i in range(K):
@@ -186,25 +188,17 @@ def train_model_crossval(data_transforms, kfold_dir, train_cfg,
         model, optimizer, scheduler = \
             helper_train(model_cfg, optimizer_cfg, scheduler_cfg)
 
-        best_val_loss, best_val_acc, best_val_class_loss, best_val_class_acc, best_val_model = \
+        result = \
             train_model(class_names, dataset_sizes, dataloaders,
                         model, loss_fn, optimizer, scheduler,
                         model_cfg['device'],
                         train_cfg['num_epochs'],
                         train_cfg['batch_per_disp'])
 
-        kfold_val_loss.append(best_val_loss)
-        kfold_val_class_loss.append(best_val_class_loss)
-        kfold_val_acc.append(best_val_acc)
-        kfold_val_class_acc.append(best_val_class_acc)
-        kfold_val_model.append(best_val_model)
+        kfold_result.append(result)
 
         ckpoint = {
-            'kfold_val_loss': kfold_val_loss,
-            'kfold_val_acc': kfold_val_acc,
-            'kfold_val_class_loss': kfold_val_class_loss,
-            'kfold_val_class_acc': kfold_val_class_acc,
-            'kfold_val_model': kfold_val_model,
+            'kfold_result': kfold_result,
             'config': (data_transforms, train_cfg, model_cfg, optimizer_cfg, scheduler_cfg)
         }
         torch.save(ckpoint, 'ckpoint.pt')
@@ -212,7 +206,7 @@ def train_model_crossval(data_transforms, kfold_dir, train_cfg,
         if not cv:
             break
 
-    return kfold_val_loss, kfold_val_acc, kfold_val_class_loss, kfold_val_class_acc
+    return kfold_result
 
 
 if __name__ == '__main__':
