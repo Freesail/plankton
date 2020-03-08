@@ -3,6 +3,7 @@ import shutil
 import tqdm
 from random import shuffle
 import numpy as np
+import random
 
 
 def safe_listdir(path):
@@ -40,7 +41,7 @@ class PlanktonData:
             samples[c] = safe_listdir(c_dir)
         return samples
 
-    def split_kfold(self, k_fold, dst_dir):
+    def split_kfold(self, k_fold, dst_dir, oversample=False):
         # create directory
         for k in range(k_fold):
             dst_dir_k = os.path.join(dst_dir, 'fold_%d' % k)
@@ -72,9 +73,28 @@ class PlanktonData:
                     shutil.copy2(src, dst)
                 k_fold_n[k] = k_fold_n[k] + len(samples_this_fold)
 
-        print('samples in k_fold: ', k_fold_n)
+        if oversample:
+            print('oversampling ...')
+            for k in tqdm.tqdm(range(k_fold)):
+                for c in self.labels:
+                    dst = os.path.join(dst_dir, 'fold_%d' % k, c)
+                    self.oversample_dir(dst)
+
+    def oversample_dir(self, dst_dir, threshold=100):
+        samples = safe_listdir(dst_dir)
+        n_samples = len(samples)
+        if n_samples < threshold:
+            for i in range(int(threshold / n_samples) - 1):
+                for s in samples:
+                    shutil.copyfile(os.path.join(dst_dir, s), os.path.join(dst_dir, 'copy_%d_%s' % (i, s)))
+
+            random_samples = random.sample(samples, threshold % n_samples)
+            for s in random_samples:
+                shutil.copyfile(os.path.join(dst_dir, s), os.path.join(dst_dir, 'COPY_%s' % s))
+
+            assert len(safe_listdir(dst_dir)) == threshold
 
 
 if __name__ == '__main__':
     plankton = PlanktonData(raw_data_dir='./data/raw_data')
-    plankton.split_kfold(k_fold=5, dst_dir='./data/raw_data/kfold')
+    plankton.split_kfold(k_fold=5, dst_dir='./data/raw_data/kfold', oversample=True)

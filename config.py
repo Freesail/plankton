@@ -24,7 +24,7 @@ train_cfg = {
 model_cfg = {
     'backbone': 'resnet18',
     'fc_hidden_dim': [256, 256],
-    'tune_conv': True,
+    'tune_conv': False,
     'num_classes': 121,
     'device': torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 }
