@@ -34,7 +34,7 @@ def helper_model(backbone, fc_hidden_dim, num_classes, device):
 
 def helper_train(model_cfg, optimizer_cfg, scheduler_cfg):
     model = helper_model(**model_cfg)
-    optimizer = torch.optim.Adam(model.parameters(), **optimizer_cfg)
+    optimizer = torch.optim.Adam(model.fc.parameters(), **optimizer_cfg)
     scheduler = StepLR(optimizer, **scheduler_cfg)
     return model, optimizer, scheduler
 
