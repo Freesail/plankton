@@ -125,7 +125,8 @@ def train_model_val(data_transforms, data_dir, train_cfg,
     ckpoint = {
         'best_val_loss': best_val_loss,
         'best_val_acc': best_val_acc,
-        'best_val_model': best_val_model
+        'best_val_model': best_val_model,
+        'config': (data_transforms, train_cfg, model_cfg, optimizer_cfg, scheduler_cfg)
     }
     torch.save(ckpoint, 'ckpoint.pt')
     return best_val_loss, best_val_acc
@@ -173,22 +174,25 @@ def train_model_crossval(data_transforms, kfold_dir, train_cfg,
         ckpoint = {
             'kfold_val_loss': kfold_val_loss,
             'kfold_val_acc': kfold_val_acc,
-            'kfold_val_model': kfold_val_model
+            'kfold_val_model': kfold_val_model,
+            'config': (data_transforms, train_cfg, model_cfg, optimizer_cfg, scheduler_cfg)
         }
         torch.save(ckpoint, 'ckpoint.pt')
     return kfold_val_loss, kfold_val_acc
 
 
 if __name__ == '__main__':
-    data_transforms = dict()
-
-    data_transforms['train'] = transforms.Compose([
-        transforms.Resize((100, 100)),
-        transforms.ToTensor()
-    ])
-    data_transforms['val'] = transforms.Compose([
-        transforms.Resize((50, 50)),
-        transforms.ToTensor()
-    ])
-    device = torch.device('cpu')
+    # data_transforms = dict()
+    #
+    # data_transforms['train'] = transforms.Compose([
+    #     transforms.Resize((100, 100)),
+    #     transforms.ToTensor()
+    # ])
+    # data_transforms['val'] = transforms.Compose([
+    #     transforms.Resize((50, 50)),
+    #     transforms.ToTensor()
+    # ])
+    # device = torch.device('cpu')
     # train_model_cv(data_transforms, kfold_dir='./data/raw_data/kfold', batch_size=2, device=device)
+    from config import data_transforms, train_cfg
+    print(data_transforms)
