@@ -20,7 +20,7 @@ data_transforms['val'] = transforms.Compose([
 ])
 
 train_cfg = {
-    'num_epochs': 50,
+    'num_epochs': 40,
     'batch_size': 64,
     'batch_per_disp': 100
 }
@@ -28,7 +28,7 @@ train_cfg = {
 model_cfg = {
     'backbone': 'resnet18',
     'pretrained': True,
-    'fc_hidden_dim': [256, 256],
+    'fc_hidden_dim': [512, 512],
     'tune_conv': True,
     'num_classes': 121,
     'device': torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -36,7 +36,7 @@ model_cfg = {
 
 optimizer_cfg = {
     'lr': 1e-3,
-    'conv_lr_ratio': 0.1
+    'conv_lr_ratio': 0.3
 }
 
 scheduler_cfg = {

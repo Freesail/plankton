@@ -80,7 +80,8 @@ class PlanktonData:
                     dst = os.path.join(dst_dir, 'fold_%d' % k, c)
                     self.oversample_dir(dst)
 
-    def oversample_dir(self, dst_dir, threshold=100):
+    @staticmethod
+    def oversample_dir(dst_dir, threshold=100):
         samples = safe_listdir(dst_dir)
         n_samples = len(samples)
         if n_samples < threshold:
