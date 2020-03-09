@@ -19,7 +19,6 @@ data_transforms['val'] = transforms.Compose([
     transforms.ToTensor()
 ])
 
-
 train_cfg = {
     'num_epochs': 50,
     'batch_size': 64,
@@ -37,12 +36,10 @@ model_cfg = {
 
 optimizer_cfg = {
     'lr': 5e-4,
+    'conv_lr_ratio': 0.2
 }
 
 scheduler_cfg = {
     'step_size': 10,
-    'gamma': 0.5
+    'gamma': 0.7
 }
-
-
-

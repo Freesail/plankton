@@ -48,7 +48,8 @@ def helper_train(model_cfg, optimizer_cfg, scheduler_cfg):
         optimizer = torch.optim.Adam(model.fc.parameters(), **optimizer_cfg)
     else:
         optimizer = torch.optim.Adam(
-            [{'params': conv_params, 'lr': 0.1 * optimizer_cfg['lr']},
+            [{'params': conv_params,
+              'lr': optimizer_cfg['conv_lr_ratio'] * optimizer_cfg['lr']},
              {'params': fc_params}],
             **optimizer_cfg)
     scheduler = StepLR(optimizer, **scheduler_cfg)
