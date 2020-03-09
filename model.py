@@ -48,10 +48,13 @@ def helper_train(model_cfg, optimizer_cfg, scheduler_cfg):
         optimizer = torch.optim.Adam(model.fc.parameters(), **optimizer_cfg)
     else:
         optimizer = torch.optim.Adam(
-            [{'params': conv_params,
-              'lr': optimizer_cfg['conv_lr_ratio'] * optimizer_cfg['lr']},
-             {'params': fc_params}],
-            **optimizer_cfg)
+            [
+                {'params': conv_params,
+                 'lr': optimizer_cfg['conv_lr_ratio'] * optimizer_cfg['lr']},
+                {'params': fc_params,
+                 'lr': optimizer_cfg['lr']}
+            ],
+        )
     scheduler = StepLR(optimizer, **scheduler_cfg)
     return model, optimizer, scheduler
 
@@ -177,7 +180,6 @@ def train_model(class_names, dataset_sizes,
 #     }
 #     torch.save(ckpoint, 'ckpoint.pt')
 #     return best_val_loss, best_val_acc
-
 
 def train_model_crossval(data_transforms, kfold_dir, train_cfg,
                          model_cfg, optimizer_cfg, scheduler_cfg,
