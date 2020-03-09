@@ -5,6 +5,9 @@ import torch
 data_transforms = dict()
 data_transforms['train'] = transforms.Compose([
     preprocess.PadToSquare(),
+    transforms.RandomRotation(degrees=180),
+    transforms.RandomHorizontalFlip(p=0.5),
+    transforms.RandomVerticalFlip(p=0.5),
     transforms.Resize((224, 224)),
     transforms.ToTensor()
 ])
