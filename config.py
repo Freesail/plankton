@@ -5,7 +5,9 @@ import torch
 data_transforms = dict()
 data_transforms['train'] = transforms.Compose([
     preprocess.PadToSquare(),
-    transforms.RandomRotation(degrees=180),
+    transforms.RandomAffine(degrees=180, translate=(0.1, 0.1),
+                            scale=(0.7, 1.2), shear=30, fillcolor=(255, 255, 255)),
+    transforms.ColorJitter(contrast=[0.5, 1.5]),
     transforms.RandomHorizontalFlip(p=0.5),
     transforms.RandomVerticalFlip(p=0.5),
     transforms.Resize((224, 224)),
