@@ -22,9 +22,12 @@ def helper_mlp(in_dim, hiddent_dim, out_dim):
     return nn.Sequential(*tuple(layers))
 
 
-def helper_model(backbone, fc_hidden_dim, num_classes, tune_conv, device):
-    model_conv = eval('%s(pretrained=True)' % backbone)
-    if not tune_conv:
+def helper_model(backbone, pretrained, fc_hidden_dim, tune_conv, num_classes, device):
+    if backbone == 'resnet18':
+        model_conv = resnet18(pretrained=pretrained)
+    else:
+        raise NotImplementedError
+    if pretrained and (not tune_conv):
         for param in model_conv.parameters():
             param.requires_grad = False
     num_ftrs = model_conv.fc.in_features
@@ -35,10 +38,10 @@ def helper_model(backbone, fc_hidden_dim, num_classes, tune_conv, device):
 
 def helper_train(model_cfg, optimizer_cfg, scheduler_cfg):
     model = helper_model(**model_cfg)
-    if model_cfg['tune_conv']:
-        optimizer = torch.optim.Adam(model.parameters(), **optimizer_cfg)
-    else:
+    if model_cfg['pretrained'] and (not model_cfg['tune_conv']):
         optimizer = torch.optim.Adam(model.fc.parameters(), **optimizer_cfg)
+    else:
+        optimizer = torch.optim.Adam(model.parameters(), **optimizer_cfg)
     scheduler = StepLR(optimizer, **scheduler_cfg)
     return model, optimizer, scheduler
 
