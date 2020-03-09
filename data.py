@@ -97,4 +97,4 @@ class PlanktonData:
 
 if __name__ == '__main__':
     plankton = PlanktonData(raw_data_dir='./data/raw_data')
-    plankton.split_kfold(k_fold=5, dst_dir='./data/raw_data/kfold', oversample=True)
+    plankton.split_kfold(k_fold=5, dst_dir='./data/raw_data/kfold', oversample=False)
