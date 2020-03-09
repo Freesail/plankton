@@ -218,7 +218,6 @@ def train_model_crossval(data_transforms, kfold_dir, train_cfg,
 
         ckpoint = {
             'kfold_result': kfold_result,
-            'config': (data_transforms, train_cfg, model_cfg, optimizer_cfg, scheduler_cfg)
         }
         torch.save(ckpoint, 'ckpoint.pt')
 

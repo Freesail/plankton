@@ -35,11 +35,11 @@ model_cfg = {
 }
 
 optimizer_cfg = {
-    'lr': 5e-4,
-    'conv_lr_ratio': 0.2
+    'lr': 1e-3,
+    'conv_lr_ratio': 0.1
 }
 
 scheduler_cfg = {
     'step_size': 10,
-    'gamma': 0.7
+    'gamma': 0.3
 }
