@@ -28,15 +28,18 @@ train_cfg = {
 
 model_cfg = {
     'backbone': 'resnet18',
-    'pretrained': False,
-    'fc_hidden_dim': [512, 512],
-    'tune_conv': False,
+    'pretrained': True,
+    'fc_hidden_dim': [256, 256],
+    'tune_conv': True,
+    # 'conv_lr': 0.1,
     'num_classes': 121,
     'device': torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 }
 
 optimizer_cfg = {
-    'lr': 3e-4,
+    'lr': 1e-3,
+    'momentum': 0.9,
+    'weight_decay': 1e-2
 }
 
 scheduler_cfg = {

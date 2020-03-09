@@ -39,9 +39,9 @@ def helper_model(backbone, pretrained, fc_hidden_dim, tune_conv, num_classes, de
 def helper_train(model_cfg, optimizer_cfg, scheduler_cfg):
     model = helper_model(**model_cfg)
     if model_cfg['pretrained'] and (not model_cfg['tune_conv']):
-        optimizer = torch.optim.Adam(model.fc.parameters(), **optimizer_cfg)
+        optimizer = torch.optim.SGD(model.fc.parameters(), **optimizer_cfg)
     else:
-        optimizer = torch.optim.Adam(model.parameters(), **optimizer_cfg)
+        optimizer = torch.optim.SGD(model.parameters(), **optimizer_cfg)
     scheduler = StepLR(optimizer, **scheduler_cfg)
     return model, optimizer, scheduler
 
