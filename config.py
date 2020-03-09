@@ -10,7 +10,7 @@ data_transforms['train'] = transforms.Compose([
     transforms.ColorJitter(contrast=[0.5, 1.5]),
     transforms.RandomHorizontalFlip(p=0.5),
     transforms.RandomVerticalFlip(p=0.5),
-    transforms.Resize((224, 224)),
+    transforms.Resize((128, 128)),
     transforms.ToTensor()
 ])
 data_transforms['val'] = transforms.Compose([
@@ -28,14 +28,14 @@ train_cfg = {
 model_cfg = {
     'backbone': 'resnet18',
     'pretrained': True,
-    'fc_hidden_dim': [512, 512],
+    'fc_hidden_dim': [256, 256],
     'tune_conv': True,
     'num_classes': 121,
     'device': torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 }
 
 optimizer_cfg = {
-    'lr': 1e-3,
+    'lr': 5e-4,
     'conv_lr_ratio': 0.3
 }
 
