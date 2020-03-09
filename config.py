@@ -5,8 +5,8 @@ import torch
 data_transforms = dict()
 data_transforms['train'] = transforms.Compose([
     preprocess.PadToSquare(),
-    transforms.RandomAffine(degrees=180, translate=(0.1, 0.1),
-                            scale=(0.7, 1.2), shear=30, fillcolor=(255, 255, 255)),
+    transforms.RandomAffine(degrees=180, translate=(0.2, 0.2),
+                            scale=(0.7, 1.5), shear=30, fillcolor=(255, 255, 255)),
     transforms.ColorJitter(contrast=[0.5, 1.5]),
     transforms.RandomHorizontalFlip(p=0.5),
     transforms.RandomVerticalFlip(p=0.5),
@@ -31,15 +31,12 @@ model_cfg = {
     'pretrained': True,
     'fc_hidden_dim': [256, 256],
     'tune_conv': True,
-    # 'conv_lr': 0.1,
     'num_classes': 121,
     'device': torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 }
 
 optimizer_cfg = {
-    'lr': 1e-3,
-    'momentum': 0.9,
-    'weight_decay': 1e-2
+    'lr': 5e-4,
 }
 
 scheduler_cfg = {

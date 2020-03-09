@@ -25,23 +25,29 @@ def helper_mlp(in_dim, hiddent_dim, out_dim):
 def helper_model(backbone, pretrained, fc_hidden_dim, tune_conv, num_classes, device):
     if backbone == 'resnet18':
         model_conv = resnet18(pretrained=pretrained)
+        conv_params = model_conv.parameters()
+        if pretrained and (not tune_conv):
+            for param in conv_params:
+                param.requires_grad = False
+        num_ftrs = model_conv.fc.in_features
+        model_conv.fc = helper_mlp(num_ftrs, fc_hidden_dim, num_classes)
+        fc_params = model_conv.fc.parameters()
+        model_conv = model_conv.to(device)
     else:
         raise NotImplementedError
-    if pretrained and (not tune_conv):
-        for param in model_conv.parameters():
-            param.requires_grad = False
-    num_ftrs = model_conv.fc.in_features
-    model_conv.fc = helper_mlp(num_ftrs, fc_hidden_dim, num_classes)
-    model_conv = model_conv.to(device)
-    return model_conv
+
+    return model_conv, conv_params, fc_params
 
 
 def helper_train(model_cfg, optimizer_cfg, scheduler_cfg):
-    model = helper_model(**model_cfg)
+    model, conv_params, fc_params = helper_model(**model_cfg)
     if model_cfg['pretrained'] and (not model_cfg['tune_conv']):
-        optimizer = torch.optim.SGD(model.fc.parameters(), **optimizer_cfg)
+        optimizer = torch.optim.Adam(model.fc.parameters(), **optimizer_cfg)
     else:
-        optimizer = torch.optim.SGD(model.parameters(), **optimizer_cfg)
+        optimizer = torch.optim.Adam(
+            [{'params': conv_params, 'lr': 0.1 * optimizer_cfg['lr']},
+             {'params': fc_params}],
+            **optimizer_cfg)
     scheduler = StepLR(optimizer, **scheduler_cfg)
     return model, optimizer, scheduler
 
