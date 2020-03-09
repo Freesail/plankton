@@ -5,12 +5,12 @@ import torch
 data_transforms = dict()
 data_transforms['train'] = transforms.Compose([
     preprocess.PadToSquare(),
-    transforms.RandomAffine(degrees=180, translate=(0.2, 0.2),
-                            scale=(0.7, 1.5), shear=30, fillcolor=(255, 255, 255)),
-    transforms.ColorJitter(contrast=[0.5, 1.5]),
+    transforms.RandomAffine(degrees=180, translate=(0.1, 0.1),
+                            scale=(0.7, 1.2), shear=30, fillcolor=(255, 255, 255)),
+    transforms.ColorJitter(contrast=[0.7, 1.1]),
     transforms.RandomHorizontalFlip(p=0.5),
     transforms.RandomVerticalFlip(p=0.5),
-    transforms.Resize((128, 128)),
+    transforms.Resize((224, 224)),
     transforms.ToTensor()
 ])
 data_transforms['val'] = transforms.Compose([
@@ -36,7 +36,7 @@ model_cfg = {
 
 optimizer_cfg = {
     'lr': 5e-4,
-    'conv_lr_ratio': 0.3
+    'conv_lr_ratio': 0.2
 }
 
 scheduler_cfg = {
