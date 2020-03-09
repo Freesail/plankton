@@ -25,14 +25,17 @@ def helper_mlp(in_dim, hiddent_dim, out_dim):
 def helper_model(backbone, pretrained, fc_hidden_dim, tune_conv, num_classes, device):
     if backbone == 'resnet18':
         model_conv = resnet18(pretrained=pretrained)
-        conv_params = model_conv.parameters()
         if pretrained and (not tune_conv):
-            for param in conv_params:
+            for param in model_conv.parameters():
                 param.requires_grad = False
         num_ftrs = model_conv.fc.in_features
         model_conv.fc = helper_mlp(num_ftrs, fc_hidden_dim, num_classes)
         fc_params = model_conv.fc.parameters()
         model_conv = model_conv.to(device)
+
+        ignored_params = list(map(id, model_conv.fc.parameters()))
+        conv_params = filter(lambda p: id(p) not in ignored_params,
+                             model_conv.parameters())
     else:
         raise NotImplementedError
 

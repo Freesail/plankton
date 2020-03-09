@@ -22,8 +22,8 @@ data_transforms['val'] = transforms.Compose([
 
 train_cfg = {
     'num_epochs': 50,
-    'batch_size': 128,
-    'batch_per_disp': 50
+    'batch_size': 64,
+    'batch_per_disp': 100
 }
 
 model_cfg = {
