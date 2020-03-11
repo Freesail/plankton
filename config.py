@@ -25,15 +25,15 @@ data_transforms['test'] = transforms.Compose([
 ])
 
 train_cfg = {
-    'num_epochs': 50,
+    'num_epochs': 100,
     'batch_size': 128,
     'batch_per_disp': 100
 }
 
 model_cfg = {
-    'backbone': 'resnet18',
+    'backbone': 'wide_resnet50_2',
     'pretrained': True,
-    'fc_hidden_dim': [512, 512],
+    'fc_hidden_dim': [1024, 1024],
     'tune_conv': True,
     'fc_dropout': 0.5,
     'num_classes': 121,
@@ -46,6 +46,6 @@ optimizer_cfg = {
 }
 
 scheduler_cfg = {
-    'step_size': 15,
+    'step_size': 25,
     'gamma': 0.3
 }

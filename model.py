@@ -40,7 +40,6 @@ class BayesianMlp(nn.Module):
             pass
 
 
-
 def helper_mlp(in_dim, hidden_dim, out_dim, fc_dropout):
     layers = []
     hidden_dim = copy.deepcopy(hidden_dim)
@@ -60,20 +59,22 @@ def helper_mlp(in_dim, hidden_dim, out_dim, fc_dropout):
 def helper_model(backbone, pretrained, fc_hidden_dim, fc_dropout, tune_conv, num_classes, device):
     if backbone == 'resnet18':
         model_conv = resnet18(pretrained=pretrained)
-        if pretrained and (not tune_conv):
-            for param in model_conv.parameters():
-                param.requires_grad = False
-        num_ftrs = model_conv.fc.in_features
-        model_conv.fc = helper_mlp(num_ftrs, fc_hidden_dim, num_classes, fc_dropout)
-        fc_params = model_conv.fc.parameters()
-        model_conv = model_conv.to(device)
-
-        ignored_params = list(map(id, model_conv.fc.parameters()))
-        conv_params = filter(lambda p: id(p) not in ignored_params,
-                             model_conv.parameters())
+    elif backbone == 'wide_resnet50_2':
+        model_conv = wide_resnet50_2(pretrained=pretrained)
     else:
         raise NotImplementedError
 
+    if pretrained and (not tune_conv):
+        for param in model_conv.parameters():
+            param.requires_grad = False
+    num_ftrs = model_conv.fc.in_features
+    model_conv.fc = helper_mlp(num_ftrs, fc_hidden_dim, num_classes, fc_dropout)
+    fc_params = model_conv.fc.parameters()
+    model_conv = model_conv.to(device)
+
+    ignored_params = list(map(id, model_conv.fc.parameters()))
+    conv_params = filter(lambda p: id(p) not in ignored_params,
+                         model_conv.parameters())
     return model_conv, conv_params, fc_params
 
 
