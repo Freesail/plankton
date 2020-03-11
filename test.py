@@ -41,7 +41,7 @@ def test_model(data_transfoms, test_dir, ckpoint_path, model_cfg, class_names, s
     model, _, _ = helper_model(**model_cfg)
     ckpoint = torch.load(ckpoint_path, map_location=model_cfg['device'])
     # todo
-    model.load_state_dict = ckpoint['kfold_result'][0]['best_model']
+    model.load_state_dict(ckpoint['kfold_result'][0]['best_model'])
     model.eval()
     for inputs, names in tqdm.tqdm(test_dataloader):
         inputs = inputs.to(model_cfg['device'])

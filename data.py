@@ -53,7 +53,6 @@ class PlanktonData:
         # copy data
         k_fold_n = np.zeros(k_fold, dtype=np.int32)
         samples_with_label = self.get_train_samples_with_label()
-        print('splitting k_fold ...')
         for c in tqdm.tqdm(self.labels):
             samples = samples_with_label[c]
             nc = len(samples)
@@ -74,7 +73,6 @@ class PlanktonData:
                 k_fold_n[k] = k_fold_n[k] + len(samples_this_fold)
 
         if oversample:
-            print('oversampling ...')
             for k in tqdm.tqdm(range(k_fold)):
                 for c in self.labels:
                     dst = os.path.join(dst_dir, 'fold_%d' % k, c)

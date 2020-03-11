@@ -10,13 +10,14 @@ from torch.optim.lr_scheduler import StepLR
 import numpy as np
 
 
-def helper_mlp(in_dim, hiddent_dim, out_dim):
+def helper_mlp(in_dim, hidden_dim, out_dim):
     layers = []
-    hiddent_dim.insert(0, in_dim)
-    hiddent_dim.append(out_dim)
+    hidden_dim = copy.deepcopy(hidden_dim)
+    hidden_dim.insert(0, in_dim)
+    hidden_dim.append(out_dim)
 
-    for i in range(len(hiddent_dim) - 1):
-        layers.append(nn.Linear(hiddent_dim[i], hiddent_dim[i + 1]))
+    for i in range(len(hidden_dim) - 1):
+        layers.append(nn.Linear(hidden_dim[i], hidden_dim[i + 1]))
         layers.append(nn.ReLU())
     layers.pop()
     return nn.Sequential(*tuple(layers))
@@ -218,6 +219,7 @@ def train_model_crossval(data_transforms, kfold_dir, train_cfg,
 
         ckpoint = {
             'kfold_result': kfold_result,
+            'class_names': class_names
         }
         torch.save(ckpoint, 'ckpoint.pt')
 
