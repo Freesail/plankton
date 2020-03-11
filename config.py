@@ -25,8 +25,8 @@ data_transforms['test'] = transforms.Compose([
 ])
 
 train_cfg = {
-    'num_epochs': 40,
-    'batch_size': 64,
+    'num_epochs': 50,
+    'batch_size': 128,
     'batch_per_disp': 100
 }
 
@@ -42,10 +42,10 @@ model_cfg = {
 
 optimizer_cfg = {
     'lr': 5e-4,
-    'conv_lr_ratio': 0.2
+    'conv_lr_ratio': 0.3
 }
 
 scheduler_cfg = {
-    'step_size': 10,
+    'step_size': 15,
     'gamma': 0.3
 }

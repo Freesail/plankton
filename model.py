@@ -7,7 +7,38 @@ from torchvision import transforms, datasets
 import os
 from torch.utils.data.dataset import ConcatDataset
 from torch.optim.lr_scheduler import StepLR
+import torch.nn.functional as F
 import numpy as np
+
+
+class BayesianMlp(nn.Module):
+    def __init__(self, in_dim, hidden_dim, out_dim, fc_dropout):
+        super(BayesianMlp, self).__init__()
+        self.p_drop = fc_dropout
+        self.linear_layers = self.get_linear_layers(in_dim, hidden_dim, out_dim)
+
+    @staticmethod
+    def get_linear_layers(in_dim, hidden_dim, out_dim):
+        layers = []
+        hidden_dim = copy.deepcopy(hidden_dim)
+        hidden_dim.insert(0, in_dim)
+        hidden_dim.append(out_dim)
+        for i in range(len(hidden_dim) - 1):
+            layers.append(nn.Linear(hidden_dim[i], hidden_dim[i + 1]))
+        return layers
+
+    def forward(self, x):
+        num_layers = len(self.linear_layers)
+        if self.training:
+            for i in range(num_layers):
+                x = self.linear_layers[i](x)
+                if i < num_layers - 1:
+                    x = F.relu(x)
+                    x = F.dropout(x, p=self.p_drop)
+            return x
+        else:
+            pass
+
 
 
 def helper_mlp(in_dim, hidden_dim, out_dim, fc_dropout):
@@ -158,33 +189,6 @@ def train_model(class_names, dataset_sizes,
     return result
 
 
-# def train_model_val(data_transforms, data_dir, train_cfg,
-#                     model_cfg, optimizer_cfg, scheduler_cfg,
-#                     loss_fn=nn.CrossEntropyLoss(reduction='none')):
-#     image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x])
-#                       for x in ['train', 'val']}
-#     class_names, dataloaders, dataset_sizes = helper_dataloaders(image_datasets, train_cfg['batch_size'])
-#     model, optimizer, scheduler = \
-#         helper_train(model_cfg, optimizer_cfg, scheduler_cfg)
-#
-#     print('Training starts ...')
-#     best_val_loss, best_val_acc, best_val_class_loss, best_val_class_acc, best_val_model = \
-#         train_model(class_names, dataset_sizes, dataloaders,
-#                     model, loss_fn, optimizer, scheduler,
-#                     model_cfg['device'],
-#                     train_cfg['num_epochs'],
-#                     train_cfg['batch_per_disp'])
-#     print('Training ends')
-#     print('Best val loss %.3f | acc: %.3f' % (best_val_loss, best_val_acc))
-#     ckpoint = {
-#         'best_val_loss': best_val_loss,
-#         'best_val_acc': best_val_acc,
-#         'best_val_model': best_val_model,
-#         'config': (data_transforms, train_cfg, model_cfg, optimizer_cfg, scheduler_cfg)
-#     }
-#     torch.save(ckpoint, 'ckpoint.pt')
-#     return best_val_loss, best_val_acc
-
 def train_model_crossval(data_transforms, kfold_dir, train_cfg,
                          model_cfg, optimizer_cfg, scheduler_cfg,
                          loss_fn=nn.CrossEntropyLoss(reduction='none'), cv=True):
@@ -229,7 +233,7 @@ def train_model_crossval(data_transforms, kfold_dir, train_cfg,
         if not cv:
             break
 
-    return kfold_result
+    return ckpoint
 
 
 if __name__ == '__main__':
