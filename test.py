@@ -8,6 +8,7 @@ from model import safe_listdir
 import os
 import pandas as pd
 import tqdm
+import numpy as np
 
 
 class TestDataset(VisionDataset):
@@ -38,11 +39,12 @@ def test_model(data_transfoms, test_dir, ckpoint_path, model_cfg, class_names, s
         num_workers=16)
     out_df = pd.DataFrame(0, index=test_dataset.samples, columns=class_names)
     model, _, _ = helper_model(**model_cfg)
-    ckpoint = torch.load(ckpoint_path, map_location=torch.device('cpu'))
+    ckpoint = torch.load(ckpoint_path, map_location=model_cfg['device'])
     # todo
     model.load_state_dict = ckpoint['kfold_result'][0]['best_model']
     model.eval()
     for inputs, names in tqdm.tqdm(test_dataloader):
+        inputs = inputs.to(model_cfg['device'])
         with torch.no_grad():
             outputs = model(inputs)
             prob = torch.nn.functional.softmax(outputs)
