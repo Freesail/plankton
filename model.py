@@ -10,7 +10,7 @@ from torch.optim.lr_scheduler import StepLR
 import numpy as np
 
 
-def helper_mlp(in_dim, hidden_dim, out_dim):
+def helper_mlp(in_dim, hidden_dim, out_dim, fc_dropout):
     layers = []
     hidden_dim = copy.deepcopy(hidden_dim)
     hidden_dim.insert(0, in_dim)
@@ -19,18 +19,21 @@ def helper_mlp(in_dim, hidden_dim, out_dim):
     for i in range(len(hidden_dim) - 1):
         layers.append(nn.Linear(hidden_dim[i], hidden_dim[i + 1]))
         layers.append(nn.ReLU())
+        if fc_dropout > 0:
+            layers.append(nn.Dropout(p=fc_dropout))
+    layers.pop()
     layers.pop()
     return nn.Sequential(*tuple(layers))
 
 
-def helper_model(backbone, pretrained, fc_hidden_dim, tune_conv, num_classes, device):
+def helper_model(backbone, pretrained, fc_hidden_dim, fc_dropout, tune_conv, num_classes, device):
     if backbone == 'resnet18':
         model_conv = resnet18(pretrained=pretrained)
         if pretrained and (not tune_conv):
             for param in model_conv.parameters():
                 param.requires_grad = False
         num_ftrs = model_conv.fc.in_features
-        model_conv.fc = helper_mlp(num_ftrs, fc_hidden_dim, num_classes)
+        model_conv.fc = helper_mlp(num_ftrs, fc_hidden_dim, num_classes, fc_dropout)
         fc_params = model_conv.fc.parameters()
         model_conv = model_conv.to(device)
 
