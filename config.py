@@ -18,6 +18,11 @@ data_transforms['val'] = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.ToTensor()
 ])
+data_transforms['test'] = transforms.Compose([
+    preprocess.PadToSquare(),
+    transforms.Resize((224, 224)),
+    transforms.ToTensor()
+])
 
 train_cfg = {
     'num_epochs': 40,
