@@ -47,7 +47,7 @@ def test_model(data_transfoms, test_dir, ckpoint_path, model_cfg, class_names, s
         inputs = inputs.to(model_cfg['device'])
         with torch.no_grad():
             outputs = model(inputs)
-            prob = torch.nn.functional.softmax(outputs)
+            prob = torch.nn.functional.softmax(outputs, dim=1)
         for i, name in enumerate(names):
             out_df.loc[name, :] = prob[i, :].cpu().numpy()
 
