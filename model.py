@@ -131,7 +131,7 @@ def train_model(class_names, dataset_sizes,
         }
 
     for epoch in range(1, num_epochs + 1):
-        print('Epoch {}/{}'.format(epoch, num_epochs))
+        print('\nEpoch {}/{}'.format(epoch, num_epochs))
         print('-' * 10)
 
         for phase in ['train', 'val']:
@@ -187,6 +187,12 @@ def train_model(class_names, dataset_sizes,
                 result['best_class_loss'] = np.array(class_loss, dtype=np.float) / class_cnt
                 result['best_class_acc'] = np.array(class_acc, dtype=np.float) / class_cnt
                 result['best_model'] = copy.deepcopy(model.state_dict())
+                
+                ckpoint = {
+                    'kfold_result': result,
+                    'class_names': class_names
+                }
+                torch.save(ckpoint, 'ckpoint.pt')
     return result
 
 
