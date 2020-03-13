@@ -33,7 +33,7 @@ train_cfg = {
 model_cfg = {
     'backbone': 'resnet18',
     'pretrained': True,
-    'fc_hidden_dim': [512, 512],
+    'fc_hidden_dim': [],
     'tune_conv': True,
     'fc_dropout': 0.5,
     'num_classes': 121,
@@ -42,7 +42,7 @@ model_cfg = {
 
 optimizer_cfg = {
     'lr': 5e-4,
-    'conv_lr_ratio': 0.4
+    'conv_lr_ratio': 0.2
 }
 
 scheduler_cfg = {
