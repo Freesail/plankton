@@ -149,8 +149,8 @@ def train_model(class_names, dataset_sizes,
         print('-' * 10)
 
         if epoch > 20:  # increase the weight of pseudo label when model becomes valid
-            pseudo_para = 0.2 + pseudo_para
-        elif epoch > 40:
+            pseudo_para = 0.2
+        elif epoch > 80:
             pseudo_para = 0.5
 
         for phase in ['train', 'val']:
@@ -196,7 +196,7 @@ def train_model(class_names, dataset_sizes,
                             batch_loss = loss.item()
                             batch_acc = torch.sum(preds == labels.data).item() / inputs.size(0)
                             try:
-                                print('batch %d: loss %.3f (unloss %.3f) | acc %.3f' % (batch, batch_loss,un_loss, batch_acc))
+                                print('batch %d: loss %.3f (unloss %.3f) | acc %.3f' % (batch, batch_loss, pseudo_para * un_loss, batch_acc))
                             except:
                                 print('batch %d: loss %.3f | acc %.3f' % (batch, batch_loss, batch_acc))
 
