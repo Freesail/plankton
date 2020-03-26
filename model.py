@@ -148,7 +148,9 @@ def train_model(class_names, dataset_sizes,
         print('-' * 10)
 
         if epoch > 20:  # increase the weight of pseudo label when model becomes valid
-            pseudo_para = 2 * pseudo_para
+            pseudo_para = 0.2 + pseudo_para
+        elif epoch > 40:
+            pseudo_para = 0.5
 
         for phase in ['train', 'val']:
             epoch_loss = 0
