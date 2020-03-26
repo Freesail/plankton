@@ -233,7 +233,7 @@ def train_model(class_names, dataset_sizes,
     return result
 
 
-def train_model_crossval(data_transforms, kfold_dir, test_dir, train_cfg, model_cfg, optimizer_cfg, scheduler_cfg,
+def train_model_crossval(data_transforms, kfold_dir, test_dir = None, train_cfg, model_cfg, optimizer_cfg, scheduler_cfg,
                          loss_fn=nn.CrossEntropyLoss(reduction='none'), cv=True, pseudo=False, pseudo_para=0):
     kfold_datasets = []
 
@@ -253,10 +253,9 @@ def train_model_crossval(data_transforms, kfold_dir, test_dir, train_cfg, model_
         val_set = kfold_datasets[i]
         val_set.transform = data_transforms['val']
 
-        test_set = datasets.ImageFolder(os.path.join(test_dir, safe_listdir(test_dir)))
-        test_set.transform = data_transforms['train']  # same transformation because of training purpose
-
         if pseudo:
+            test_set = datasets.ImageFolder(os.path.join(test_dir, safe_listdir(test_dir)))
+            test_set.transform = data_transforms['train']  # same transformation because of training purpose
             image_datasets = {'train': ConcatDataset(train_sets),
                               'val': val_set,
                               'unlabel': test_set}
