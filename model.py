@@ -109,7 +109,7 @@ def helper_dataloaders(image_datasets, batch_size):
 
     if 'unlabel' in image_datasets.keys():
         dataloaders['unlabel'] = torch.utils.data.DataLoader(image_datasets['unlabel'],
-                                                             batch_size=batch_size / 4,
+                                                             batch_size=int(batch_size / 4),
                                                              shuffle=True, num_workers=16)
         dataset_sizes['unlabel'] = 0
 
@@ -220,6 +220,7 @@ def train_model(class_names, dataset_sizes,
             # generate pseudo label for the next training
             if pseudo:
                 un_inputs, un_labels = next(unlabelIter)
+
                 un_labels = model(un_inputs)
 
             if phase == 'val' and epoch_loss < result['best_loss']:
@@ -254,7 +255,7 @@ def train_model_crossval(data_transforms, kfold_dir,  train_cfg, model_cfg, opti
         val_set.transform = data_transforms['val']
 
         if pseudo:
-            test_set = datasets.ImageFolder(os.path.join(test_dir, safe_listdir(test_dir)))
+            test_set = datasets.ImageFolder(os.path.join(test_dir))
             test_set.transform = data_transforms['train']  # same transformation because of training purpose
             image_datasets = {'train': ConcatDataset(train_sets),
                               'val': val_set,
