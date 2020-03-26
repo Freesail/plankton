@@ -9,6 +9,8 @@ from torch.utils.data.dataset import ConcatDataset
 from torch.optim.lr_scheduler import StepLR
 import torch.nn.functional as F
 import numpy as np
+
+
 # yuan yuan is coming
 
 
@@ -102,7 +104,15 @@ def helper_dataloaders(image_datasets, batch_size):
                                                   batch_size=batch_size,
                                                   shuffle=True, num_workers=16)
                    for x in ['train', 'val']}
+
     dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
+
+    if 'unlabel' in image_datasets.keys():
+        dataloaders['unlabel'] = torch.utils.data.DataLoader(image_datasets['unlabel'],
+                                                             batch_size=batch_size / 4,
+                                                             shuffle=True, num_workers=16)
+        dataset_sizes['unlabel'] = 0
+
     return class_names, dataloaders, dataset_sizes
 
 
@@ -120,7 +130,7 @@ def helper_class_loss_acc(class_loss, class_acc, class_cnt, losses, preds, label
 def train_model(class_names, dataset_sizes,
                 dataloaders,
                 model, loss_fn, optimizer, scheduler, device,
-                num_epochs=50, batch_per_disp=128):
+                num_epochs=50, batch_per_disp=128, pseudo=False, pseudo_para=0):
     result = \
         {
             'best_model': None,
@@ -130,10 +140,15 @@ def train_model(class_names, dataset_sizes,
             'best_class_loss': None,
             'best_class_acc': None
         }
+    if pseudo:
+        unlabelIter = iter(dataloaders['unlabel'])
 
     for epoch in range(1, num_epochs + 1):
         print('Epoch {}/{}'.format(epoch, num_epochs))
         print('-' * 10)
+
+        if epoch > 20:  # increase the weight of pseudo label when model becomes valid
+            pseudo_para = 2 * pseudo_para
 
         for phase in ['train', 'val']:
             epoch_loss = 0
@@ -148,6 +163,12 @@ def train_model(class_names, dataset_sizes,
                 model.eval()
 
             for batch, (inputs, labels) in enumerate(dataloaders[phase]):
+                if pseudo:
+                    try:  # pseudo label generated last time
+                        un_inputs, un_labels = un_inputs.to(device), un_labels.to(device)
+                    except NameError:  # the first model doesn't have pseudo label set
+                        pass
+
                 inputs, labels = inputs.to(device), labels.to(device)
                 optimizer.zero_grad()
 
@@ -156,6 +177,17 @@ def train_model(class_names, dataset_sizes,
                     _, preds = torch.max(outputs, 1)
                     losses = loss_fn(outputs, labels)
                     loss = losses.mean()
+
+                    if pseudo:
+                        try:
+                            un_outputs = model(un_inputs)
+                            _, un_preds = torch.max(un_outputs, 1)
+                            un_losses = loss_fn(un_outputs, un_labels)
+                            un_loss = un_losses.mean()
+                            loss = loss + pseudo_para * un_loss
+                            dataset_sizes['unlabel'] += len(un_outputs)
+                        except NameError:  # the first model doesn't have pseudo label set
+                            pass
 
                     if phase == 'train':
                         loss.backward()
@@ -175,10 +207,18 @@ def train_model(class_names, dataset_sizes,
             if phase == 'train':
                 scheduler.step()
 
+            if pseudo:
+                dataset_sizes['train'] += dataset_sizes['unlabel']
+
             epoch_loss = epoch_loss / dataset_sizes[phase]
             epoch_acc = epoch_acc / dataset_sizes[phase]
             print('Epoch %d: %s loss %.3f | %s acc %.3f'
                   % (epoch, phase, epoch_loss, phase, epoch_acc))
+
+            # generate pseudo label for the next training
+            if pseudo:
+                un_inputs, un_labels = next(unlabelIter)
+                un_labels = model(un_inputs)
 
             if phase == 'val' and epoch_loss < result['best_loss']:
                 result['best_loss'] = epoch_loss
@@ -191,38 +231,45 @@ def train_model(class_names, dataset_sizes,
     return result
 
 
-def train_model_crossval(data_transforms, kfold_dir, train_cfg,
-                         model_cfg, optimizer_cfg, scheduler_cfg,
-                         loss_fn=nn.CrossEntropyLoss(reduction='none'), cv=True):
+def train_model_crossval(data_transforms, kfold_dir, test_dir, train_cfg, model_cfg, optimizer_cfg, scheduler_cfg,
+                         loss_fn=nn.CrossEntropyLoss(reduction='none'), cv=True, pseudo=False, pseudo_para=0):
     kfold_datasets = []
+
     for k in safe_listdir(kfold_dir):
         kfold_datasets.append(datasets.ImageFolder(os.path.join(kfold_dir, k)))
 
     kfold_result = []
-
     K = len(kfold_datasets)
+
     for i in range(K):
         print('K_Fold CV {}/{}'.format(i + 1, K))
         print('=' * 10)
         train_sets = kfold_datasets[:i] + kfold_datasets[i + 1:]
         for s in train_sets:
             s.transform = data_transforms['train']
+
         val_set = kfold_datasets[i]
         val_set.transform = data_transforms['val']
-        image_datasets = {
-            'train': ConcatDataset(train_sets),
-            'val': val_set
-        }
-        class_names, dataloaders, dataset_sizes = helper_dataloaders(image_datasets, train_cfg['batch_size'])
-        model, optimizer, scheduler = \
-            helper_train(model_cfg, optimizer_cfg, scheduler_cfg)
 
-        result = \
-            train_model(class_names, dataset_sizes, dataloaders,
-                        model, loss_fn, optimizer, scheduler,
-                        model_cfg['device'],
-                        train_cfg['num_epochs'],
-                        train_cfg['batch_per_disp'])
+        test_set = datasets.ImageFolder(os.path.join(test_dir, safe_listdir(test_dir)))
+        test_set.transform = data_transforms['train']  # same transformation because of training purpose
+
+        if pseudo:
+            image_datasets = {'train': ConcatDataset(train_sets),
+                              'val': val_set,
+                              'unlabel': test_set}
+
+        else:
+            image_datasets = {
+                'train': ConcatDataset(train_sets),
+                'val': val_set}
+
+        class_names, dataloaders, dataset_sizes = helper_dataloaders(image_datasets, train_cfg['batch_size'])
+        model, optimizer, scheduler = helper_train(model_cfg, optimizer_cfg, scheduler_cfg)
+
+        result = train_model(class_names, dataset_sizes, dataloaders, model, loss_fn, optimizer, scheduler,
+                             model_cfg['device'], train_cfg['num_epochs'], train_cfg['batch_per_disp'], pseudo,
+                             pseudo_para)
 
         kfold_result.append(result)
 
