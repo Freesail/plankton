@@ -140,10 +140,11 @@ def train_model(class_names, dataset_sizes,
             'best_class_loss': None,
             'best_class_acc': None
         }
-    if pseudo:
-        unlabelIter = iter(dataloaders['unlabel'])
+
 
     for epoch in range(1, num_epochs + 1):
+        if pseudo:
+            unlabelIter = iter(dataloaders['unlabel'])
         print('Epoch {}/{}'.format(epoch, num_epochs))
         print('-' * 10)
 
@@ -165,11 +166,6 @@ def train_model(class_names, dataset_sizes,
                 model.eval()
 
             for batch, (inputs, labels) in enumerate(dataloaders[phase]):
-                if pseudo:
-                    try:  # pseudo label generated last time
-                        un_inputs, un_labels = un_inputs.to(device), un_labels.to(device)
-                    except NameError:  # the first model doesn't have pseudo label set
-                        pass
 
                 inputs, labels = inputs.to(device), labels.to(device)
                 optimizer.zero_grad()
@@ -180,16 +176,17 @@ def train_model(class_names, dataset_sizes,
                     losses = loss_fn(outputs, labels)
                     loss = losses.mean()
 
-                    if pseudo:
-                        try:
-                            un_outputs = model(un_inputs)
-                            _, un_preds = torch.max(un_outputs, 1)
-                            un_losses = loss_fn(un_outputs, un_labels)
-                            un_loss = un_losses.mean()
-                            loss = loss + pseudo_para * un_loss
-                            dataset_sizes['unlabel'] += len(un_outputs)
-                        except NameError:  # the first model doesn't have pseudo label set
-                            pass
+                    try:
+                        loss += pseudo_para * un_loss
+                    except NameError:
+                        pass
+
+                    if pseudo:  # old model
+                        un_inputs, un_labels = next(unlabelIter)
+                        un_inputs = un_inputs.to(device)
+                        un_outputs_curr = model(un_inputs)
+                        _, un_labels = torch.max(un_outputs_curr, 1)
+                        un_labels = un_labels.to(device)
 
                     if phase == 'train':
                         loss.backward()
@@ -199,6 +196,13 @@ def train_model(class_names, dataset_sizes,
                             batch_loss = loss.item()
                             batch_acc = torch.sum(preds == labels.data).item() / inputs.size(0)
                             print('batch %d: loss %.3f | acc %.3f' % (batch, batch_loss, batch_acc))
+
+                    if pseudo:  # new model
+                        un_outputs = model(un_inputs)
+                        _, un_preds = torch.max(un_outputs, 1)
+                        un_losses = loss_fn(un_outputs, un_labels)
+                        un_loss = un_losses.mean()
+                        dataset_sizes['unlabel'] += len(un_outputs)
 
                 if phase == 'val':
                     helper_class_loss_acc(class_loss, class_acc, class_cnt, losses, preds, labels)
@@ -220,10 +224,12 @@ def train_model(class_names, dataset_sizes,
             # generate pseudo label for the next training
             if pseudo:
                 un_inputs, un_labels = next(unlabelIter)
+                un_inputs = un_inputs.to(device)
+                un_outputs_curr = model(un_inputs)
+                _, un_labels = torch.max(un_outputs_curr, 1)
+                un_labels = un_labels.to(device)
 
-                un_labels = model(un_inputs)
-
-            if phase == 'val' and epoch_loss < result['best_loss']:
+        if phase == 'val' and epoch_loss < result['best_loss']:
                 result['best_loss'] = epoch_loss
                 result['best_acc'] = epoch_acc
                 class_cnt = np.array(class_cnt)
