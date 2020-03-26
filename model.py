@@ -195,7 +195,10 @@ def train_model(class_names, dataset_sizes,
                         if batch % batch_per_disp == 0:
                             batch_loss = loss.item()
                             batch_acc = torch.sum(preds == labels.data).item() / inputs.size(0)
-                            print('batch %d: loss %.3f | acc %.3f' % (batch, batch_loss, batch_acc))
+                            try:
+                                print('batch %d: loss %.3f (unloss %.3f) | acc %.3f' % (batch, batch_loss,un_loss, batch_acc))
+                            except:
+                                print('batch %d: loss %.3f | acc %.3f' % (batch, batch_loss, batch_acc))
 
                     if pseudo:  # new model
                         un_outputs = model(un_inputs)
@@ -213,8 +216,8 @@ def train_model(class_names, dataset_sizes,
             if phase == 'train':
                 scheduler.step()
 
-            if pseudo:
-                dataset_sizes['train'] += dataset_sizes['unlabel']
+           # if pseudo:
+                #dataset_sizes['train'] += dataset_sizes['unlabel']
 
             epoch_loss = epoch_loss / dataset_sizes[phase]
             epoch_acc = epoch_acc / dataset_sizes[phase]
