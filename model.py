@@ -233,8 +233,8 @@ def train_model(class_names, dataset_sizes,
     return result
 
 
-def train_model_crossval(data_transforms, kfold_dir, test_dir = None, train_cfg, model_cfg, optimizer_cfg, scheduler_cfg,
-                         loss_fn=nn.CrossEntropyLoss(reduction='none'), cv=True, pseudo=False, pseudo_para=0):
+def train_model_crossval(data_transforms, kfold_dir,  train_cfg, model_cfg, optimizer_cfg, scheduler_cfg,
+                         loss_fn=nn.CrossEntropyLoss(reduction='none'), cv=True, pseudo=False, pseudo_para=0, test_dir = None):
     kfold_datasets = []
 
     for k in safe_listdir(kfold_dir):
