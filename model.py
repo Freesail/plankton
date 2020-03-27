@@ -198,7 +198,7 @@ def train_model(class_names, dataset_sizes,
                             batch_acc = torch.sum(preds == labels.data).item() / inputs.size(0)
                             try:
                                 print('batch %d: loss %.3f (unloss %.3f) | acc %.3f' % (
-                                batch, batch_loss, pseudo_para * un_loss, batch_acc))
+                                batch, batch_loss, p_para * un_loss, batch_acc))
                             except:
                                 print('batch %d: loss %.3f | acc %.3f' % (batch, batch_loss, batch_acc))
 
