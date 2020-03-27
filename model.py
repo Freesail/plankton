@@ -130,7 +130,7 @@ def helper_class_loss_acc(class_loss, class_acc, class_cnt, losses, preds, label
 def train_model(class_names, dataset_sizes,
                 dataloaders,
                 model, loss_fn, optimizer, scheduler, device,
-                num_epochs=50, batch_per_disp=128, pseudo=False, pseudo_para=0):
+                num_epochs=50, batch_per_disp=128, pseudo=False, pseudo_para=[0, 0, 0]):
     result = \
         {
             'best_model': None,
@@ -141,17 +141,18 @@ def train_model(class_names, dataset_sizes,
             'best_class_acc': None
         }
 
-
     for epoch in range(1, num_epochs + 1):
         if pseudo:
             unlabelIter = iter(dataloaders['unlabel'])
         print('Epoch {}/{}'.format(epoch, num_epochs))
         print('-' * 10)
 
-        if epoch > 20:  # increase the weight of pseudo label when model becomes valid
-            pseudo_para = 0.2
+        if epoch > 40 and epoch <= 80:  # increase the weight of pseudo label when model becomes valid
+            p_para = pseudo_para[1]
         elif epoch > 80:
-            pseudo_para = 0.5
+            p_para = pseudo_para[2]
+        else:
+            p_para = pseudo_para[0]
 
         for phase in ['train', 'val']:
             epoch_loss = 0
@@ -177,7 +178,7 @@ def train_model(class_names, dataset_sizes,
                     loss = losses.mean()
 
                     try:
-                        loss += pseudo_para * un_loss
+                        loss += p_para * un_loss
                     except NameError:
                         pass
 
@@ -196,7 +197,8 @@ def train_model(class_names, dataset_sizes,
                             batch_loss = loss.item()
                             batch_acc = torch.sum(preds == labels.data).item() / inputs.size(0)
                             try:
-                                print('batch %d: loss %.3f (unloss %.3f) | acc %.3f' % (batch, batch_loss, pseudo_para * un_loss, batch_acc))
+                                print('batch %d: loss %.3f (unloss %.3f) | acc %.3f' % (
+                                batch, batch_loss, pseudo_para * un_loss, batch_acc))
                             except:
                                 print('batch %d: loss %.3f | acc %.3f' % (batch, batch_loss, batch_acc))
 
@@ -216,8 +218,8 @@ def train_model(class_names, dataset_sizes,
             if phase == 'train':
                 scheduler.step()
 
-           # if pseudo:
-                #dataset_sizes['train'] += dataset_sizes['unlabel']
+            # if pseudo:
+            # dataset_sizes['train'] += dataset_sizes['unlabel']
 
             epoch_loss = epoch_loss / dataset_sizes[phase]
             epoch_acc = epoch_acc / dataset_sizes[phase]
@@ -233,18 +235,19 @@ def train_model(class_names, dataset_sizes,
                 un_labels = un_labels.to(device)
 
         if phase == 'val' and epoch_loss < result['best_loss']:
-                result['best_loss'] = epoch_loss
-                result['best_acc'] = epoch_acc
-                class_cnt = np.array(class_cnt)
-                result['val_class_cnt'] = class_cnt
-                result['best_class_loss'] = np.array(class_loss, dtype=np.float) / class_cnt
-                result['best_class_acc'] = np.array(class_acc, dtype=np.float) / class_cnt
-                result['best_model'] = copy.deepcopy(model.state_dict())
+            result['best_loss'] = epoch_loss
+            result['best_acc'] = epoch_acc
+            class_cnt = np.array(class_cnt)
+            result['val_class_cnt'] = class_cnt
+            result['best_class_loss'] = np.array(class_loss, dtype=np.float) / class_cnt
+            result['best_class_acc'] = np.array(class_acc, dtype=np.float) / class_cnt
+            result['best_model'] = copy.deepcopy(model.state_dict())
     return result
 
 
-def train_model_crossval(data_transforms, kfold_dir,  train_cfg, model_cfg, optimizer_cfg, scheduler_cfg,
-                         loss_fn=nn.CrossEntropyLoss(reduction='none'), cv=True, pseudo=False, pseudo_para=0, test_dir = None):
+def train_model_crossval(data_transforms, kfold_dir, train_cfg, model_cfg, optimizer_cfg, scheduler_cfg,
+                         loss_fn=nn.CrossEntropyLoss(reduction='none'), cv=True, pseudo=False, pseudo_para=[0, 0, 0],
+                         test_dir=None):
     kfold_datasets = []
 
     for k in safe_listdir(kfold_dir):
