@@ -50,3 +50,15 @@ scheduler_cfg = {
     'step_size': 20,
     'gamma': 0.3
 }
+
+
+def pseudo_scheduler(epoch):
+    if epoch < 5:
+        return 0.0
+
+    if 5 <= epoch <= 35:
+        return (epoch - 5) * 0.3 / 30
+
+    if epoch > 35:
+        return 0.3
+
