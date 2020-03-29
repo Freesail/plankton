@@ -38,7 +38,7 @@ class BayesianMlp(nn.Module):
         hidden_dim.insert(0, in_dim)
         hidden_dim.append(out_dim)
         self.num_layers = len(hidden_dim) - 1
-        for i in range(self.num_layer):
+        for i in range(self.num_layers):
             setattr(self, 'linear_layer{}'.format(i),
                     nn.Linear(hidden_dim[i], hidden_dim[i + 1]))
 
@@ -55,6 +55,6 @@ class BayesianMlp(nn.Module):
             self.train()
             for i in range(n_samples):
                 preds.append(self.forward(x))
-            pred = torch.cat(preds, dim=0).mean(dim=0)
+            pred = torch.stack(preds, dim=0).mean(dim=0)
             self.eval()
             return pred
