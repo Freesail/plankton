@@ -30,7 +30,6 @@ def helper_mlp(in_dim, hidden_dim, out_dim, fc_dropout, is_bayes=False):
         return nn.Sequential(*tuple(layers))
 
 
-# TODO: hah
 class BayesianMlp(nn.Module):
     def __init__(self, in_dim, hidden_dim, out_dim, fc_dropout):
         super(BayesianMlp, self).__init__()
@@ -38,16 +37,16 @@ class BayesianMlp(nn.Module):
         hidden_dim = copy.deepcopy(hidden_dim)
         hidden_dim.insert(0, in_dim)
         hidden_dim.append(out_dim)
-        for i in range(len(hidden_dim) - 1):
+        self.num_layers = len(hidden_dim) - 1
+        for i in range(self.num_layer):
             setattr(self, 'linear_layer{}'.format(i),
                     nn.Linear(hidden_dim[i], hidden_dim[i + 1]))
 
     def forward(self, x, n_samples=100):
-        num_layers = len(self.linear_layers)
         if self.training:
-            for i in range(num_layers):
+            for i in range(self.num_layers):
                 x = getattr(self, 'linear_layer{}'.format(i))(x)
-                if i < num_layers - 1:
+                if i < self.num_layers - 1:
                     x = F.relu(x)
                     x = F.dropout(x, p=self.p_drop)
             return x
