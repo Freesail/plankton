@@ -25,7 +25,7 @@ data_transforms['test'] = transforms.Compose([
 ])
 
 train_cfg = {
-    'num_epochs': 100,
+    'num_epochs': 40,
     'batch_size': 128,
     'batch_per_disp': 100
 }
@@ -35,7 +35,7 @@ model_cfg = {
     'pretrained': True,
     'fc_hidden_dim': [512, 512],
     'tune_conv': True,
-    'fc_dropout': 0.5,
+    'fc_dropout': 0.2,
     'num_classes': 121,
     'device': torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 }
@@ -46,6 +46,6 @@ optimizer_cfg = {
 }
 
 scheduler_cfg = {
-    'step_size': 25,
+    'step_size': 20,
     'gamma': 0.3
 }
