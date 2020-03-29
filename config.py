@@ -53,12 +53,12 @@ scheduler_cfg = {
 
 
 def pseudo_scheduler(epoch):
-    if epoch < 5:
+    if epoch < 3:
         return 0.0
 
-    if 5 <= epoch <= 35:
-        return (epoch - 5) * 0.3 / 30
+    if 3 <= epoch <= 25:
+        return (epoch - 5) * 0.2 / 22
 
-    if epoch > 35:
-        return 0.3
+    if epoch > 25:
+        return 0.2
 

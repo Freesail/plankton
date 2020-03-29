@@ -125,12 +125,10 @@ def train_model(class_names, dataset_sizes,
                         else:
                             if pseudo_scheduler(epoch) > 0:
                                 with torch.no_grad():
-                                    model.eval()
                                     pseudo_inputs, _ = next(pseudo_iter)
                                     pseudo_inputs = pseudo_inputs.to(device)
                                     pseudo_outputs = model(pseudo_inputs)
                                     _, pseudo_labels = torch.max(pseudo_outputs, 1)
-                                    model.train()
                                 total_loss = loss + pseudo_loss * pseudo_scheduler(epoch)
                             else:
                                 total_loss = loss
