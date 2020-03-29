@@ -57,8 +57,8 @@ def pseudo_scheduler(epoch):
         return 0.0
 
     if 3 <= epoch <= 25:
-        return (epoch - 5) * 0.2 / 22
+        return (epoch - 5) * 0.3 / 22
 
     if epoch > 25:
-        return 0.2
+        return 0.3
 
