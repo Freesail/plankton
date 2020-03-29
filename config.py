@@ -36,6 +36,7 @@ model_cfg = {
     'fc_hidden_dim': [512, 512],
     'tune_conv': True,
     'fc_dropout': 0.2,
+    'is_bayes': True,
     'num_classes': 121,
     'device': torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 }

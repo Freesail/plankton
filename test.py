@@ -1,10 +1,10 @@
 import torch
-from model import helper_model
+from train import helper_model
 from torch.utils.data import Dataset, DataLoader
 from torchvision.datasets.vision import VisionDataset
 from torchvision import datasets
 from torchvision.datasets.folder import default_loader
-from model import safe_listdir
+from train import safe_listdir
 import os
 import pandas as pd
 import tqdm
