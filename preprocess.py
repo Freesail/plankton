@@ -1,4 +1,6 @@
 import torchvision.transforms.functional as tf
+import torch
+from torch.distributions import Categorical
 
 
 class PadToSquare:
@@ -15,3 +17,12 @@ class PadToSquare:
                 return tf.pad(x, padding=(pad, 0, pad, 0), fill=(255, 255, 255))
         else:
             return x
+
+
+class NoisyLabel:
+    def __init__(self, confusion_matrix):
+        self.confunsion_matrix = torch.Tensor(confusion_matrix)
+
+    def __call__(self, label):
+        probs = self.confunsion_matrix[label, :]
+        return torch.distributions.Categorical(probs).sample()

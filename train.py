@@ -175,7 +175,7 @@ def train_model(class_names, dataset_sizes,
 def train_model_crossval(data_transforms, kfold_dir, train_cfg,
                          model_cfg, optimizer_cfg, scheduler_cfg,
                          loss_fn=nn.CrossEntropyLoss(reduction='none'), cv=True,
-                         pseudo_scheduler=None, pseudo_dir=None):
+                         pseudo_scheduler=None, pseudo_dir=None, target_transform=None):
     kfold_datasets = []
     for k in safe_listdir(kfold_dir):
         kfold_datasets.append(datasets.ImageFolder(os.path.join(kfold_dir, k)))
@@ -189,6 +189,8 @@ def train_model_crossval(data_transforms, kfold_dir, train_cfg,
         train_sets = kfold_datasets[:i] + kfold_datasets[i + 1:]
         for s in train_sets:
             s.transform = data_transforms['train']
+            if target_transform is not None:
+                s.target_transform = target_transform
         val_set = kfold_datasets[i]
         val_set.transform = data_transforms['val']
         image_datasets = {

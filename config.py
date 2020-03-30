@@ -1,6 +1,7 @@
 from torchvision import transforms
 import preprocess
 import torch
+import numpy as np
 
 data_transforms = dict()
 data_transforms['train'] = transforms.Compose([
@@ -23,6 +24,8 @@ data_transforms['test'] = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.ToTensor()
 ])
+
+target_transforms = preprocess.NoisyLabel(np.load('T_matrix.npy'))
 
 train_cfg = {
     'num_epochs': 50,
@@ -51,7 +54,6 @@ scheduler_cfg = {
     'gamma': 0.3
 }
 
-
 # def pseudo_scheduler(epoch):
 #     if epoch < 3:
 #         return 0.0
@@ -61,4 +63,3 @@ scheduler_cfg = {
 #
 #     if epoch > 25:
 #         return 0.3
-
