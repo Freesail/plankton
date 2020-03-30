@@ -70,7 +70,7 @@ def helper_class_loss_acc(class_loss, class_acc, class_cnt, losses, preds, label
 
     for i in range(labels.shape[0]):
         class_cnt[labels[i]] = class_cnt[labels[i]] + 1
-        class_loss[labels[i]] = class_cnt[labels[i]] + losses[i]
+        class_loss[labels[i]] = class_loss[labels[i]] + losses[i]
         class_acc[labels[i]] = class_acc[labels[i]] + (preds[i] == labels[i])
 
 
