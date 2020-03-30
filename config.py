@@ -28,7 +28,7 @@ data_transforms['test'] = transforms.Compose([
 target_transforms = preprocess.NoisyLabel(np.load('T_matrix.npy'))
 
 train_cfg = {
-    'num_epochs': 50,
+    'num_epochs': 30,
     'batch_size': 128,
     'batch_per_disp': 100
 }
@@ -36,7 +36,7 @@ train_cfg = {
 model_cfg = {
     'backbone': 'resnet18',
     'pretrained': True,
-    'fc_hidden_dim': [],
+    'fc_hidden_dim': [1024],
     'tune_conv': True,
     'fc_dropout': 0.5,
     'is_bayes': False,
@@ -46,7 +46,7 @@ model_cfg = {
 
 optimizer_cfg = {
     'lr': 5e-4,
-    'conv_lr_ratio': 0.3
+    'conv_lr_ratio': 0.4
 }
 
 scheduler_cfg = {
