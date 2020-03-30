@@ -25,7 +25,7 @@ data_transforms['test'] = transforms.Compose([
     transforms.ToTensor()
 ])
 
-target_transforms = preprocess.NoisyLabel(np.load('T_matrix.npy'))
+target_transform = preprocess.NoisyLabel(np.load('T_matrix.npy'))
 
 train_cfg = {
     'num_epochs': 30,
