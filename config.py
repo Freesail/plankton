@@ -21,11 +21,16 @@ data_transforms['val'] = transforms.Compose([
 ])
 data_transforms['test'] = transforms.Compose([
     preprocess.PadToSquare(),
+    transforms.RandomAffine(degrees=180, translate=(0.1, 0.1),
+                            scale=(0.7, 1.2), shear=15, fillcolor=(255, 255, 255)),
+    transforms.ColorJitter(contrast=[0.7, 1.1]),
+    transforms.RandomHorizontalFlip(p=0.5),
+    transforms.RandomVerticalFlip(p=0.5),
     transforms.Resize((224, 224)),
     transforms.ToTensor()
 ])
 
-target_transform = preprocess.NoisyLabel(np.load('T_matrix.npy'))
+# target_transform = preprocess.NoisyLabel(np.load('./plankton/T_matrix.npy'))
 
 train_cfg = {
     'num_epochs': 30,
@@ -36,7 +41,7 @@ train_cfg = {
 model_cfg = {
     'backbone': 'resnet18',
     'pretrained': True,
-    'fc_hidden_dim': [1024],
+    'fc_hidden_dim': [512, 512],
     'tune_conv': True,
     'fc_dropout': 0.5,
     'is_bayes': False,
